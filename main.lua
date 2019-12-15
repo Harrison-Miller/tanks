@@ -1,4 +1,5 @@
 fizz = require("libs/fizzx.fizz")
+anim8 = require("libs/anim8")
 require("tiles")
 require("utils")
 require("terrain")
@@ -34,19 +35,40 @@ function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
     sheet = love.graphics.newImage('sheet.png')
+    local g = anim8.newGrid(16, 16, sheet:getWidth(), sheet:getHeight(), 0, 152)
 
-    player = fizz.addDynamic('rect', fizzRect(128, 0, 32, 32))
-    player.bounce = 0.1
+    player = fizz.addDynamic("rect", fizzRect(128, 0, 32, 20))
+
+    player.sideSensor = fizz.addDynamic("rect", fizzRect(128+16, 6, 16, 16))
+    function player.sideSensor:onCollide(b, nx, ny, pen)
+        if b.name and b.name == "ground" then
+            player.side = true
+        end
+        return false
+    end
+
+    player.cornerSensor = fizz.addDynamic("rect", fizzRect(128+16, -16, 16, 16))
+    function player.cornerSensor:onCollide(b, nx, ny, pen)
+        if b.name and b.name == "ground" then
+            player.corner = true
+        end
+        return false
+    end
+
+    -- player.bounce = 0.1
     player.friction = 0.1
-    player.frame = love.graphics.newQuad(0, 152, 16, 16, sheet:getDimensions())
+    player.animation = anim8.newAnimation(g("1-4", 1), 0.2)
+    player.animation:pause()
     player.facing = 1
     player.grounded = false
     player.jumping = false
+    player.corner = false
+    player.side = false
 
     function player:update(dt)
-        local left = love.keyboard.isDown('left')
-        local right = love.keyboard.isDown('right')
-        local jump = love.keyboard.isDown('space')
+        local left = love.keyboard.isDown("left")
+        local right = love.keyboard.isDown("right")
+        local jump = love.keyboard.isDown("space")
 
         local vx, vy = fizz.getVelocity(player)
         local sx, sy = fizz.getDisplacement(player)
@@ -59,6 +81,7 @@ function love.load()
 
         local move = 0
         if left or right then
+            player.animation:resume()
             if left then
                 player.facing = -1
                 move = -speed
@@ -70,7 +93,15 @@ function love.load()
             if not player.grounded then
                 move = move/8
             end
+
+            if not player.corner and player.side then
+                vy = -256
+            end
+
             vx = vx + move*dt
+        else
+            player.animation:pause()
+            player.animation:gotoFrame(1)
         end
 
         if jump and not player.jumping and player.grounded then
@@ -84,6 +115,15 @@ function love.load()
         end
 
         fizz.setVelocity(player, vx, vy)
+
+        fizz.setVelocity(player.sideSensor, vx, vy)
+        fizz.setPosition(player.sideSensor, player.x+(16*player.facing), player.y-2)
+
+        fizz.setVelocity(player.cornerSensor, vx, vy)
+        fizz.setPosition(player.cornerSensor, player.x+(32*player.facing), player.y-32)
+
+        player.corner = false
+        player.side = false
     end
 
     -- Get quads of all the level tiles
@@ -108,6 +148,8 @@ function love.update(dt)
         fizz.update(interval)
         accum = accum - interval
     end
+
+    player.animation:update(dt)
 end
 
 function love.draw()
@@ -121,22 +163,23 @@ function love.draw()
     end
 
     -- Draw the player tank
-    love.graphics.draw(sheet, player.frame, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
+    -- love.graphics.draw(sheet, player.frame, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
+    player.animation:draw(sheet, player.x, player.y-10, 0, 4*player.facing, 4, 8, 8)
 
     -- Draw fizz objects
-    for i, v in ipairs(fizz.statics) do
-        love.graphics.setColor(0, 127/255, 0, 127/255)
-        if v.shape == 'rect' then
-            love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-        elseif v.shape == 'line' then
-            love.graphics.line(v.x, v.y, v.x2, v.y2)
-        end        
-    end
+    -- for i, v in ipairs(fizz.statics) do
+    --     love.graphics.setColor(0, 127/255, 0, 127/255)
+    --     if v.shape == 'rect' then
+    --         love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+    --     elseif v.shape == 'line' then
+    --         love.graphics.line(v.x, v.y, v.x2, v.y2)
+    --     end        
+    -- end
 
-    for i, v in ipairs(fizz.dynamics) do
-        love.graphics.setColor(127/255, 0, 0, 127/255)
-        love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-    end
+    -- for i, v in ipairs(fizz.dynamics) do
+    --     love.graphics.setColor(127/255, 0, 0, 127/255)
+    --     love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+    -- end
 
     love.graphics.setColor(1, 1, 1, 1)
 

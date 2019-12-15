@@ -110,13 +110,15 @@ generateHitboxes = function(w, h, curve)
         end
 
         if previousTop ~= top then
-            fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (i-startI)*32, (h-previousTop+1)*32))
+            local g = fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (i-startI)*32, (h-previousTop+1)*32))
+            g.name = "ground"
             startI=i
         end
         previousTop=top
     end
 
-    fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (w+1-startI)*32, (h-previousTop+1)*32))
+   local g = fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (w+1-startI)*32, (h-previousTop+1)*32))
+    g.name = "ground"
 
     -- Add level boundaries
     fizz.addStatic('rect', fizzRect(-32, 0, 32, h*32)) -- left
@@ -127,7 +129,6 @@ generateBuildings = function(w, h, curve, data)
     local buildings = {}
 
     local buildingSeed = love.math.random()
-    print(buildingSeed)
 
     for i=2,w-4 do
         local building = love.math.noise(i + buildingSeed)
