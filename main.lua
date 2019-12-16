@@ -117,7 +117,7 @@ function love.load()
         fizz.setVelocity(player, vx, vy)
 
         fizz.setVelocity(player.sideSensor, vx, vy)
-        fizz.setPosition(player.sideSensor, player.x+(16*player.facing), player.y-2)
+        fizz.setPosition(player.sideSensor, player.x+(16*player.facing), player.y-4)
 
         fizz.setVelocity(player.cornerSensor, vx, vy)
         fizz.setPosition(player.cornerSensor, player.x+(32*player.facing), player.y-32)
@@ -130,12 +130,12 @@ function love.load()
     level.tileQuads = createTileQuads(sheet:getDimensions())
 
     -- Generate a level
-    level.w = math.floor((love.graphics.getWidth()*5)/32)
+    level.w = math.floor((love.graphics.getWidth()*10)/32)
     level.h = math.floor(love.graphics.getHeight()/32)
     level.data = {}
 
-    -- seed = 1576396477
-    seed = os.time()
+    seed = 1576467901
+    -- seed = os.time()
     love.math.setRandomSeed(seed)
 
     level.data = generateRollingHills(level.w, level.h)
@@ -167,19 +167,19 @@ function love.draw()
     player.animation:draw(sheet, player.x, player.y-10, 0, 4*player.facing, 4, 8, 8)
 
     -- Draw fizz objects
-    -- for i, v in ipairs(fizz.statics) do
-    --     love.graphics.setColor(0, 127/255, 0, 127/255)
-    --     if v.shape == 'rect' then
-    --         love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-    --     elseif v.shape == 'line' then
-    --         love.graphics.line(v.x, v.y, v.x2, v.y2)
-    --     end        
-    -- end
+    for i, v in ipairs(fizz.statics) do
+        love.graphics.setColor(0, 127/255, 0, 127/255)
+        if v.shape == 'rect' then
+            love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+        elseif v.shape == 'line' then
+            love.graphics.line(v.x, v.y, v.x2, v.y2)
+        end        
+    end
 
-    -- for i, v in ipairs(fizz.dynamics) do
-    --     love.graphics.setColor(127/255, 0, 0, 127/255)
-    --     love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-    -- end
+    for i, v in ipairs(fizz.dynamics) do
+        love.graphics.setColor(127/255, 0, 0, 127/255)
+        love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+    end
 
     love.graphics.setColor(1, 1, 1, 1)
 

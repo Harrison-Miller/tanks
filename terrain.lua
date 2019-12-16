@@ -45,7 +45,7 @@ generateTerrainCurve = function(w, h)
         end
 
         local current = curve[i]
-        if current < previous and current < next then
+        if (current < previous and current < next) or (current > previous and current > next) then
             if math.abs(current - previous) < math.abs(current - next) then
                 curve[i] = previous
             else
@@ -121,8 +121,8 @@ generateHitboxes = function(w, h, curve)
     g.name = "ground"
 
     -- Add level boundaries
-    fizz.addStatic('rect', fizzRect(-32, 0, 32, h*32)) -- left
-    fizz.addStatic('rect', fizzRect(w*32, 0, 32, h*32)) -- right
+    fizz.addStatic("rect", fizzRect(-32, 0, 32, h*32)) -- left
+    fizz.addStatic("rect", fizzRect(w*32, 0, 32, h*32)) -- right
 end
 
 generateBuildings = function(w, h, curve, data)
@@ -131,7 +131,7 @@ generateBuildings = function(w, h, curve, data)
     local buildingSeed = love.math.random()
 
     for i=2,w-4 do
-        local building = love.math.noise(i + buildingSeed)
+        local building = love.math.noise((i*0.66) + buildingSeed)
 
         if building > 0.85 then
             local spawn = math.min(curve[i], curve[i+1], curve[i+2], curve[i+3])
@@ -183,8 +183,21 @@ generateBuildings = function(w, h, curve, data)
                     t = spawn
                 end
                 data[i][t-2] = { type = tiles.bulkhead.id } -- Bulkhead
+
+                
+                if t == spawn then
+                    roofX = roofX + 32
+                    roofW = roofW - 32
+                end
+                fizz.addStatic("rect", fizzRect((i-1)*32, (t-3)*32 + 24, 32, 32)) -- we don't wnat this to be ground because it'll interfere with climbing
+
                 data[i][t-1] = { type = tiles.opendoor.id } -- Open Door
                 data[i][t] = { type = tiles.doorbottom.id } -- Door bottom
+
+                if t == spawn then
+                    g = fizz.addStatic("rect", fizzRect((i-1)*32, (t-1)*32 + 24, 32, 32))
+                    g.name = "ground"
+                end
             else
                 data[i][spawn+1] = { type = tiles.elevatorbottom.id } -- Elevator base
                 data[i][spawn] = { type = tiles.elevatorrail.id } -- Elevator rail
@@ -194,14 +207,30 @@ generateBuildings = function(w, h, curve, data)
                 roofW = roofW - 32
             end
 
+            if curve[i-1] - spawn >= 4 then
+                data[i-1][spawn+1] = { type = tiles.platform.id } 
+            end
+
             if curve[i+length] >= spawn then
                 local t = spawn + 1
                 if curve[i+length] == spawn then
                     t = spawn
                 end
                 data[i+length-1][t-2] = { type = tiles.bulkhead.id } -- Bulkhead
+
+                if t == spawn then
+                    roofW = roofW - 32
+                end
+
+                fizz.addStatic("rect", fizzRect((i+length-2)*32, (t-3)*32 + 24, 32, 32))
+
                 data[i+length-1][t-1] = { type = tiles.opendoor.id } -- Open Door
                 data[i+length-1][t] = { type = tiles.doorbottom.id } -- Door bottom
+
+                if t == spawn then
+                    g = fizz.addStatic("rect", fizzRect((i+length-2)*32, (t-1)*32 + 24, 32, 32))
+                    g.name = "ground"
+                end
             else
                 data[i+length-1][spawn+1] = { type = tiles.elevatorbottom.id } -- Elevator base
                 data[i+length-1][spawn] = { type = tiles.elevatorrail.id } -- Elevator rail
@@ -209,8 +238,13 @@ generateBuildings = function(w, h, curve, data)
                 data[i+length-1][spawn-2] = { type = tiles.elevatorrail.id } -- Elevator rail
                 roofW = roofW - 32
             end
+
+            if curve[i+length] - spawn >= 4 then
+                data[i+length][spawn+1] = { type = tiles.platform.id } 
+            end
             
-            fizz.addStatic('rect', fizzRect(roofX, (spawn-3)*32 + 24, roofW, 32))
+            g = fizz.addStatic("rect", fizzRect(roofX, (spawn-3)*32 + 24, roofW, 32))
+            g.name = "ground"
         end
     end
 

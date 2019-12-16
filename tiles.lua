@@ -1,24 +1,25 @@
 require("libs/enum")
 
 tiles = enum({
-    'bedrock',
-    'bedrock2',
-    'stone',
-    'stone2',
-    'dirt',
-    'dirt2',
-    'grass',
-    'air',
-    'tallgrass',
-    'tree',
-    'brick',
-    'backwall',
-    'floor',
-    'opendoor',
-    'bulkhead',
-    'doorbottom',
-    'elevatorbottom',
-    'elevatorrail'
+    "bedrock",
+    "bedrock2",
+    "stone",
+    "stone2",
+    "dirt",
+    "dirt2",
+    "grass",
+    "air",
+    "tallgrass",
+    "tree",
+    "brick",
+    "backwall",
+    "floor",
+    "opendoor",
+    "bulkhead",
+    "doorbottom",
+    "elevatorbottom",
+    "elevatorrail",
+    "platform"
 })
 
 function createTileQuads(w, h)
@@ -42,6 +43,7 @@ function createTileQuads(w, h)
     quads[tiles.doorbottom.id] = love.graphics.newQuad(104, 192, 8, 8, w, h) -- Door bottom
     quads[tiles.elevatorbottom.id] = love.graphics.newQuad(136, 192, 8, 8, w, h) -- Elevator bottom
     quads[tiles.elevatorrail.id] = love.graphics.newQuad(136, 184, 8, 8, w, h) -- Elevator rail
+    quads[tiles.platform.id] = love.graphics.newQuad(72, 184, 8, 8, w, h) -- Platform
 
     return quads
 end
