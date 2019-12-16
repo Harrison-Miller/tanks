@@ -1,5 +1,6 @@
 require("tiles")
 require("utils")
+require("elevator")
 
 -- forward decleration of local functions
 local generateTerrainCurve
@@ -10,9 +11,10 @@ local generateHitboxes
 function generateRollingHills(w, h)
     local curve = generateTerrainCurve(w, h)
     local data = fillTerrain(w, h, curve)
-    curve, data = generateBuildings(w, h, curve, data)
+    local elevators = {}
+    curve, data, elevators = generateBuildings(w, h, curve, data)
     generateHitboxes(w, h, curve)
-    return data
+    return data, elevators
 end
 
 -- Generate the basic curve of the terrain
@@ -127,6 +129,7 @@ end
 
 generateBuildings = function(w, h, curve, data)
     local buildings = {}
+    local elevators = {}
 
     local buildingSeed = love.math.random()
 
@@ -134,7 +137,8 @@ generateBuildings = function(w, h, curve, data)
         local building = love.math.noise((i*0.66) + buildingSeed)
 
         if building > 0.85 then
-            local spawn = math.min(curve[i], curve[i+1], curve[i+2], curve[i+3])
+            local spawn = math.max(curve[i], curve[i+1], curve[i+2], curve[i+3])
+            -- print("building at x: ", i, " heights: ", curve[i], curve[i+1], curve[i+2], curve[i+3])
             
             if buildings[i-1] and buildings[i-1].exists then
                 buildings[i-1].length = buildings[i-1].length + 1
@@ -159,7 +163,7 @@ generateBuildings = function(w, h, curve, data)
 
             -- Make basic building
             for x=i,i+length-1 do
-                for y=spawn-2,spawn+2 do
+                for y=spawn-2,spawn+1 do
                     if y == spawn+2 then
                         data[x][y] = { type = tiles.bedrock.id }
                     elseif y == spawn+1 then
@@ -170,11 +174,13 @@ generateBuildings = function(w, h, curve, data)
                         data[x][y] = { type = tiles.brick.id }
                     end
                 end
-                curve[x] = spawn+1
+
             end
 
             local roofX = (i-1)*32
             local roofW = length*32
+            local elevLeft = false
+            local elevRight = false
 
             -- Make doors
             if curve[i-1] >= spawn then
@@ -203,6 +209,15 @@ generateBuildings = function(w, h, curve, data)
                 data[i][spawn] = { type = tiles.elevatorrail.id } -- Elevator rail
                 data[i][spawn-1] = { type = tiles.elevatorrail.id } -- Elevator rail
                 data[i][spawn-2] = { type = tiles.elevatorrail.id } -- Elevator rail
+
+                for e=curve[i],spawn-2 do
+                    data[i][e] = { type = tiles.elevatorrail.id } -- Elevator rail
+                end
+
+                local elevTop = math.min(spawn-3, curve[i]-1)
+                table.insert(elevators, createElevator((i-1)*32, (spawn)*32 + 24, elevTop*32 + 24))
+                elevLeft = true
+
                 roofX = roofX + 32
                 roofW = roofW - 32
             end
@@ -236,11 +251,31 @@ generateBuildings = function(w, h, curve, data)
                 data[i+length-1][spawn] = { type = tiles.elevatorrail.id } -- Elevator rail
                 data[i+length-1][spawn-1] = { type = tiles.elevatorrail.id } -- Elevator rail
                 data[i+length-1][spawn-2] = { type = tiles.elevatorrail.id } -- Elevator rail
+
+                for e=curve[i+length-1],spawn-2 do
+                    data[i+length-1][e] = { type = tiles.elevatorrail.id } -- Elevator rail
+                end
+
+                
+                local elevTop = math.min(spawn-3, curve[i+length-1]-1)
+                table.insert(elevators, createElevator((i+length-2)*32, (spawn)*32 + 24, elevTop*32 + 24))
+                elevRight = true
+
                 roofW = roofW - 32
             end
 
             if curve[i+length] - spawn >= 4 then
                 data[i+length][spawn+1] = { type = tiles.platform.id } 
+            end
+
+            for x=i,i+length-1 do
+                if ((elevLeft and x~=i) or not elevLeft) and ((elevRight and x~=i+length-1) or not elevRight) then
+                    if curve[x] < spawn-2 then
+                        g = fizz.addStatic("rect", fizzRect((x-1)*32, (curve[x]-1)*32 + 24, 32, (spawn-2-curve[x])*32))
+                        g.name = "ground"
+                    end
+                end
+                curve[x] = spawn+1
             end
             
             g = fizz.addStatic("rect", fizzRect(roofX, (spawn-3)*32 + 24, roofW, 32))
@@ -248,5 +283,5 @@ generateBuildings = function(w, h, curve, data)
         end
     end
 
-    return curve, data
+    return curve, data, elevators
 end

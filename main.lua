@@ -35,6 +35,7 @@ function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
     sheet = love.graphics.newImage('sheet.png')
+    elevatorQuad = love.graphics.newQuad(72, 192, 8, 8, sheet:getDimensions())
     local g = anim8.newGrid(16, 16, sheet:getWidth(), sheet:getHeight(), 0, 152)
 
     player = fizz.addDynamic("rect", fizzRect(128, 0, 32, 20))
@@ -130,21 +131,24 @@ function love.load()
     level.tileQuads = createTileQuads(sheet:getDimensions())
 
     -- Generate a level
-    level.w = math.floor((love.graphics.getWidth()*10)/32)
+    level.w = math.floor((love.graphics.getWidth()*5)/32)
     level.h = math.floor(love.graphics.getHeight()/32)
     level.data = {}
 
-    seed = 1576467901
-    -- seed = os.time()
+    -- seed = 1576471146
+    seed = os.time()
     love.math.setRandomSeed(seed)
 
-    level.data = generateRollingHills(level.w, level.h)
+    level.data, level.elevators = generateRollingHills(level.w, level.h)
 end
 
 function love.update(dt)
     accum = accum + dt
     while accum >= interval do
         player:update(interval)
+        for i,e in ipairs(level.elevators) do
+            e:update(interval, player)
+        end
         fizz.update(interval)
         accum = accum - interval
     end
@@ -162,29 +166,39 @@ function love.draw()
         end
     end
 
+    for i,e in ipairs(level.elevators) do
+        love.graphics.draw(sheet, elevatorQuad, e.x, e.y-8, 0, 4, 4, 4, 4)
+    end
+
     -- Draw the player tank
     -- love.graphics.draw(sheet, player.frame, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
     player.animation:draw(sheet, player.x, player.y-10, 0, 4*player.facing, 4, 8, 8)
 
     -- Draw fizz objects
-    for i, v in ipairs(fizz.statics) do
-        love.graphics.setColor(0, 127/255, 0, 127/255)
-        if v.shape == 'rect' then
-            love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-        elseif v.shape == 'line' then
-            love.graphics.line(v.x, v.y, v.x2, v.y2)
-        end        
-    end
+    -- for i, v in ipairs(fizz.statics) do
+    --     love.graphics.setColor(0, 127/255, 0, 127/255)
+    --     if v.shape == 'rect' then
+    --         love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+    --     elseif v.shape == 'line' then
+    --         love.graphics.line(v.x, v.y, v.x2, v.y2)
+    --     end        
+    -- end
 
-    for i, v in ipairs(fizz.dynamics) do
-        love.graphics.setColor(127/255, 0, 0, 127/255)
-        love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-    end
+    -- for i, v in ipairs(fizz.dynamics) do
+    --     love.graphics.setColor(127/255, 0, 0, 127/255)
+    --     love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+    -- end
 
-    love.graphics.setColor(1, 1, 1, 1)
+    -- for i, v in ipairs(fizz.kinematics) do
+    --     love.graphics.setColor(0, 0, 127/255, 127/255)
+    --     love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
+    -- end
+
+    -- love.graphics.setColor(1, 1, 1, 1)
 
     love.graphics.pop()
 
     love.graphics.print(love.timer.getFPS() .. " fps", love.graphics.getWidth()-64, 16)
     love.graphics.print("seed: ".. seed, 10, love.graphics.getHeight()-16)
+    love.graphics.print("x: " .. math.floor(player.x) .. " y: " .. math.floor(player.y), 10, love.graphics.getHeight()-48)
 end
