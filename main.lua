@@ -104,30 +104,11 @@ function love.draw()
 
     -- Draw the player tank
     -- love.graphics.draw(sheet, player.frame, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
-    player.animation:draw(sheet, player.x, player.y-10, 0, 4*player.facing, 4, 8, 8)
+    player.animation:draw(sheet, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
     player.dustParticles:setPosition(player.x-16*player.facing, player.y)
     love.graphics.draw(player.dustParticles)
-    -- Draw fizz objects
-    for i, v in ipairs(fizz.statics) do
-        love.graphics.setColor(0, 127/255, 0, 127/255)
-        if v.shape == 'rect' then
-            love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-        elseif v.shape == 'line' then
-            love.graphics.line(v.x, v.y, v.x2, v.y2)
-        end        
-    end
 
-    for i, v in ipairs(fizz.dynamics) do
-        love.graphics.setColor(127/255, 0, 0, 127/255)
-        love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-    end
-
-    for i, v in ipairs(fizz.kinematics) do
-        love.graphics.setColor(0, 0, 127/255, 127/255)
-        love.graphics.rectangle('fill', v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
-    end
-
-    love.graphics.setColor(1, 1, 1, 1)
+    fizzDebug()
 
     love.graphics.pop()
 
