@@ -22,7 +22,7 @@ function createElevator(x, y, top)
             return
         end
 
-        if math.abs(player.x - elevator.x) < 4 and player.y < elevator.y and elevator.y - player.y < 32 then
+        if math.abs(player.body.x - elevator.x) < 4 and player.body.y < elevator.y and elevator.y - player.body.y < 32 then
             if elevator.y < elevator.top then
                 elevator.stopTime = love.timer.getTime()
                 fizz.setVelocity(elevator, 0, 0)

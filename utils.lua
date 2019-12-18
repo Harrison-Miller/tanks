@@ -3,10 +3,10 @@ function fizzRect(x, y, w, h)
     return x + w/2, y + h/2, w/2, h/2
 end
 
-function fizzDebug()
+function fizzDebug(world)
     -- Draw fizz objects
     love.graphics.setColor(0, 127/255, 0, 127/255)
-    for i, v in ipairs(fizz.statics) do
+    for i, v in ipairs(world.statics) do
         if v.shape == "rect" then
             love.graphics.rectangle("fill", v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
         elseif v.shape == "line" then
@@ -15,7 +15,7 @@ function fizzDebug()
     end
 
     love.graphics.setColor(127/255, 0, 0, 127/255)
-    for i, v in ipairs(fizz.dynamics) do
+    for i, v in ipairs(world.dynamics) do
         if v.shape == "rect" then
             love.graphics.rectangle("fill", v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
         elseif v.shape == "circle" then
@@ -24,7 +24,7 @@ function fizzDebug()
     end
 
     love.graphics.setColor(0, 0, 127/255, 127/255)
-    for i, v in ipairs(fizz.kinematics) do
+    for i, v in ipairs(world.kinematics) do
         love.graphics.rectangle("fill", v.x - v.hw, v.y - v.hh, v.hw*2, v.hh*2)
     end
 

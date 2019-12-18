@@ -1,7 +1,7 @@
 local Tank = {}
 Tank.__index = Tank
 
-function newTank(x, y, spriteRow, speed, jump)
+function newTank(world, x, y, spriteRow, speed, jump)
     -- Default values
     x = x or 0
     y = y or 0
@@ -10,11 +10,12 @@ function newTank(x, y, spriteRow, speed, jump)
     jumpVel = jumpVel or 500
 
     local tank = {} -- the new tank to create
+    tank.world = world
 
     setmetatable(tank, Tank)
 
     -- Create physics body
-    local body = fizz.addDynamic("circle", x, y, 16)
+    local body = tank.world:addDynamic("circle", x, y, 16)
     body.friction = 0.1
     body.bounce = 0
 
@@ -49,7 +50,7 @@ end
 function Tank:tick(dt)
     -- Determine if touching any walls or the floor
     self:resetControls()
-    local dx, dy = fizz.getDisplacement(self.body)
+    local dx, dy = getDisplacement(self.body)
     
     if dy < 0 then
         self.grounded = true
@@ -121,13 +122,13 @@ end
 -- Standard tank controls
 function Tank:jump()
     if not self.jumping and self.grounded then
-        local vx, vy = fizz.getVelocity(self.body)
+        local vx, vy = getVelocity(self.body)
 
         self.jumping = true
         self.anim = "jump"
 
         vy = -self.jumpVel
-        fizz.setVelocity(self.body, vx, vy)
+        setVelocity(self.body, vx, vy)
     end
 
 end
@@ -144,7 +145,7 @@ end
 
 -- In the direction already facing
 function Tank:move(dt)
-    local vx, vy = fizz.getVelocity(self.body)
+    local vx, vy = getVelocity(self.body)
     local move = self.facing*self.speed
 
     if not self.grounded then
@@ -156,5 +157,10 @@ function Tank:move(dt)
     end
 
     vx = vx + move*dt
-    fizz.setVelocity(self.body, vx, vy)
+    setVelocity(self.body, vx, vy)
+end
+
+-- Network commands
+function Tank:setPosition(x, y)
+    self.world:setPosition(self.body, x, y)
 end

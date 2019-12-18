@@ -6,14 +6,12 @@ require("elevator")
 local generateTerrainCurve
 local fillTerrain
 local generateBuildings
-local generateHitboxes
 
 function generateRollingHills(w, h)
     local curve = generateTerrainCurve(w, h)
     local data = fillTerrain(w, h, curve)
     local elevators = {}
-    curve, data, elevators = generateBuildings(w, h, curve, data)
-    generateHitboxes(w, h, curve)
+    -- curve, data, elevators = generateBuildings(w, h, curve, data)
     return data, elevators
 end
 
@@ -25,7 +23,7 @@ generateTerrainCurve = function(w, h)
     local shortSeed = love.math.random()
 
     for i=1,w do
-        local long = (love.math.noise(((i-1)/16) + longSeed) * level.h) - 4
+        local long = (love.math.noise(((i-1)/16) + longSeed) * h) - 4
         local short = love.math.noise(i + shortSeed) * 3
 
         local top = math.floor(long + short)
@@ -74,7 +72,7 @@ fillTerrain = function(w, h, curve)
         local tree = love.math.noise(i + treeSeed)
 
         for j=1,h do
-            local offset = (i+ (j*level.w))%2 -- Offset for autotiling
+            local offset = (i+ (j*w))%2 -- Offset for autotiling
 
             if j == top-1 and grass > 0.6 then
                 if tree > 0.5 then
@@ -100,31 +98,43 @@ fillTerrain = function(w, h, curve)
     return data
 end
 
-generateHitboxes = function(w, h, curve)
+function generateHitboxes(w, h, data, world)
     local startI = 1
     local previousTop = 0
     local top = 0
 
     for i=1,w do
-        top  = curve[i]
-        if i == 1 then
-            previousTop = top
+        for j=1,h do
+            local type = data[i][j].type
+            if type ~= tiles.air.id and type ~= tiles.backwall.id
+                and type ~= tiles.elevatorrail.id and type ~= tiles.opendoor.id
+                and type ~= tiles.elevatorbottom.id and type ~= tiles.tallgrass.id
+                and type ~= tiles.tree.id then
+                world:addStatic("rect", fizzRect((i-1)*32, (j-1)*32, 32, 32))
+            end
         end
-
-        if previousTop ~= top then
-            local g = fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (i-startI)*32, (h-previousTop+1)*32))
-            g.name = "ground"
-            startI=i
-        end
-        previousTop=top
     end
 
-   local g = fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (w+1-startI)*32, (h-previousTop+1)*32))
-    g.name = "ground"
+--     for i=1,w do
+--         top  = curve[i]
+--         if i == 1 then
+--             previousTop = top
+--         end
+
+--         if previousTop ~= top then
+--             local g = fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (i-startI)*32, (h-previousTop+1)*32))
+--             g.name = "ground"
+--             startI=i
+--         end
+--         previousTop=top
+--     end
+
+--    local g = fizz.addStatic("rect", fizzRect((startI-1)*32, (previousTop-1)*32 + 24, (w+1-startI)*32, (h-previousTop+1)*32))
+--     g.name = "ground"
 
     -- Add level boundaries
-    fizz.addStatic("rect", fizzRect(-32, 0, 32, h*32)) -- left
-    fizz.addStatic("rect", fizzRect(w*32, 0, 32, h*32)) -- right
+    world:addStatic("rect", fizzRect(-32, 0, 32, h*32)) -- left
+    world:addStatic("rect", fizzRect(w*32, 0, 32, h*32)) -- right
 end
 
 generateBuildings = function(w, h, curve, data)
