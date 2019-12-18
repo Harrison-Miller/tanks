@@ -4,6 +4,7 @@ require("tiles")
 require("utils")
 require("terrain")
 require("player")
+require("bots/dummy")
 
 tick = 0
 interval = 1/60
@@ -12,12 +13,12 @@ accum = 0
 maxJump = 64*3
 minJump = 64
 maxJumpT = 0.5
-g = (2*maxJump)/(maxJumpT^2)
-initJump = math.sqrt(2*g*maxJump)
-termJump = math.sqrt(initJump^2 + 2*-g*(maxJump-minJump))
+grav = (2*maxJump)/(maxJumpT^2)
+initJump = math.sqrt(2*grav*maxJump)
+termJump = math.sqrt(initJump^2 + 2*-grav*(maxJump-minJump))
 termJumpT = maxJump - (2*(maxJump - minJump)/(initJump + termJump))
 jumpTerm = termJump
-fizz.setGravity(0, g)
+fizz.setGravity(0, 1000)
 
 speed = 1000
 
@@ -54,11 +55,20 @@ function love.load()
     love.math.setRandomSeed(seed)
 
     level.data, level.elevators = generateRollingHills(level.w, level.h)
+
+    tanks = {}
+    for i=1,4 do
+         table.insert(tanks, newDummy(400 + 50*i, 100))
+    end
 end
 
 function love.update(dt)
     accum = accum + dt
     while accum >= interval do
+        for i,t in ipairs(tanks) do
+            t:tick(dt)
+        end
+
         player:update(interval)
         for i,e in ipairs(level.elevators) do
             e:update(interval, player)
@@ -67,6 +77,9 @@ function love.update(dt)
         accum = accum - interval
     end
 
+    for i,t in ipairs(tanks) do
+        t:update(dt)
+    end
     player.animation:update(dt)
     player.dustParticles:update(dt)
     for i,e in ipairs(level.elevators) do
@@ -102,13 +115,17 @@ function love.draw()
         love.graphics.draw(e.particles)
     end
 
+    for i,t in ipairs(tanks) do
+        t:draw()
+    end
+
     -- Draw the player tank
     -- love.graphics.draw(sheet, player.frame, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
     player.animation:draw(sheet, player.x, player.y, 0, 4*player.facing, 4, 8, 8)
     player.dustParticles:setPosition(player.x-16*player.facing, player.y)
     love.graphics.draw(player.dustParticles)
 
-    fizzDebug()
+    -- fizzDebug()
 
     love.graphics.pop()
 

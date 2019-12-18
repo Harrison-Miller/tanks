@@ -26,7 +26,7 @@ function createPlayer(x, y)
 
     -- setup animations
     local g = anim8.newGrid(16, 16, sheet:getWidth(), sheet:getHeight(), 0, 152)
-    player.animation = anim8.newAnimation(g("1-4", 1), 0.2)
+    player.animation = anim8.newAnimation(g("1-2", 2), 0.2)
     player.animation:pause()
     player.facing = 1
 
