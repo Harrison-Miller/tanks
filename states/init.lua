@@ -69,7 +69,7 @@ function init:enter()
         server.map.tiles, server.map.elevators = generateRollingHills(server.map.w, server.map.h)
         generateHitboxes(server.map.w, server.map.h, server.map.tiles, server.world)
 
-        gamestate.switch(game)
+        Gamestate.switch(game)
     end
 
     -- Create the client
@@ -95,7 +95,7 @@ function init:enter()
 
         generateHitboxes(client.map.w, client.map.h, client.map.tiles, client.world)
 
-        gamestate.switch(game)
+        Gamestate.switch(game)
     end)
 
     client:on("create_tanks", function(tanks)

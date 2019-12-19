@@ -1,7 +1,7 @@
 anim8 = require("libs/anim8")
 sock = require("libs/sock")
 bitser = require("libs/bitser")
-gamestate = require("../libs/hump/gamestate")
+Gamestate = require("../libs/hump/gamestate")
 require("states/init")
 
 require("tiles")
@@ -75,7 +75,7 @@ function love.load()
     -- Get quads of all the level tiles
     tileQuads = createTileQuads(sheet:getDimensions())
 
-    gamestate.switch(init)
+    Gamestate.switch(init)
 
     -- -- Generate a level
     -- level.w = math.floor((love.graphics.getWidth()*5)/32)
@@ -99,7 +99,7 @@ function love.load()
 end
 
 function love.update(dt)
-    gamestate.update(dt)
+    Gamestate.update(dt)
     -- accum = accum + dt
     -- while accum >= interval do
     --     for i,t in ipairs(tanks) do
@@ -134,7 +134,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    gamestate.draw()
+    Gamestate.draw()
     -- love.graphics.push()
 
     -- if player then

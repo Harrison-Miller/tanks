@@ -1,3 +1,5 @@
+Camera = require("libs/hump/camera")
+
 game = {}
 
 function game:enter()
@@ -11,6 +13,7 @@ function game:enter()
     end
 
     if client then
+        camera = Camera(client.map.w/2, client.map.h/2)
         client:on("position", function(data)
             local owner = data.owner
             for _, tank in ipairs(client.tanks) do
@@ -49,6 +52,11 @@ function game:update(dt)
 
         -- send player updates to server
         if player then
+            camera:lockPosition(player.body.x, player.body.y, Camera.smooth.damped(10))
+            camera.x = math.max(camera.x, love.graphics.getWidth()/2)
+            camera.x = math.min(camera.x, client.map.w*32 - love.graphics.getWidth()/2)
+            camera.y = math.min(camera.y, love.graphics.getHeight()/2 - 32)
+
             client:send("position", {
                 owner = player.owner,
                 x = player.body.x,
@@ -64,8 +72,9 @@ function game:draw(dt)
     end
 
     if client.map then
-        -- Draw the map
+        camera:attach()
 
+        -- Draw the map
         for i, col in ipairs(client.map.tiles) do
             for j, tile in ipairs(col) do
                 love.graphics.draw(sheet, tileQuads[tile.type], (i-1)*32, (j-1)*32, 0, 4, 4)
@@ -80,6 +89,18 @@ function game:draw(dt)
         end
 
         fizzDebug(client.world)
-        
+
+        camera:detach()
+
+
+        love.graphics.print(love.timer.getFPS() .. " fps", love.graphics.getWidth()-64, 16)
+
+        -- love.graphics.print("ping: " .. client:getRoundTripTime() .. " ms", 10, love.graphics.getHeight()-96)
+
+        if player then
+            love.graphics.print("x: " .. math.floor(player.body.x) .. " y: " .. math.floor(player.body.y), 10, love.graphics.getHeight()-48)
+        end
+
+        love.graphics.print("seed: ".. seed, 10, love.graphics.getHeight()-16)
     end
 end
